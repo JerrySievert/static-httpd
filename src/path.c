@@ -24,6 +24,17 @@ const char *search_paths[3] = {
   NULL
 };
 
+static char *real_path (char *path) {
+#ifdef __APPLE__
+  static char buffer[MAX_PATH_LENGTH + MAX_ROOT_LENGTH + 32];
+  realpath(path, buffer);
+#else
+  char *buffer = realpath(path, NULL);
+#endif
+
+  return buffer;
+}
+
 int open_file_maybe (char *path, char *real) {
   // don't want to allocate here if i can avoid it, should give some headway
   // and still allow for long paths and the filling of index.html etc
@@ -34,7 +45,7 @@ int open_file_maybe (char *path, char *real) {
 
   // if the last character is not a slash, try the file itself
   if (path[strlen(path) - 1] != '/') {
-    char *cret = realpath(buf, NULL);
+    char *cret = real_path(buf);
 
     if (cret != NULL && real != NULL) {
       strcpy(real, cret);
@@ -43,18 +54,22 @@ int open_file_maybe (char *path, char *real) {
     if (cret != NULL && cret[0] != '\0' && strncmp(cret, config_root, config_root_length) == 0) {
       ret = open(cret, O_RDONLY);
 
+#ifdef __linux__
       free(cret);
+#endif
 
       return ret;
     }
 
+#ifdef __linux__
     if (cret) {
       free(cret);
     }
+#endif
   } else {
     for (uint8_t i = 0; search_paths[i] != NULL; i++) {
       sprintf(buf, "%s/%s/%s", config_root, path, search_paths[i]);
-      char *cret = realpath(buf, NULL);
+      char *cret = real_path(buf);
 
       if (cret != NULL &&real != NULL) {
         strcpy(real, cret);
@@ -63,15 +78,20 @@ int open_file_maybe (char *path, char *real) {
       if (cret != NULL && cret[0] != '\0' && strncmp(cret, config_root, config_root_length) == 0) {
         ret = open(cret, O_RDONLY);
 
+#ifdef __linux__
         free(cret);
+#endif
+
         if (ret != -1) {
           return ret;
         }
       }
 
+#ifdef __linux__
       if (cret) {
         free(cret);
       }
+#endif
     }
   }
 
