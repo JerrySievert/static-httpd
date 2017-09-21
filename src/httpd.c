@@ -5,6 +5,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 
 #include <errno.h>
 
@@ -98,6 +99,11 @@ void socket_loop ( ) {
   int enable = 1;
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
     perror("setsockopt(SO_REUSEADDR) failed");
+    exit(1);
+  }
+
+  if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &enable, sizeof(int)) == -1) {
+    perror("setsockopt(TCP_NODELAY");
     exit(1);
   }
 
