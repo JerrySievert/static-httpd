@@ -41,7 +41,12 @@ int open_file_maybe (char *path, char *real) {
   char buf[MAX_PATH_LENGTH + MAX_ROOT_LENGTH + 32];
   int ret;
 
-  sprintf(buf, "%s/%s", config_root, path);
+  buf[0] = '\0';
+
+  strcat(buf, config_root);
+  strcat(buf, "/");
+  strcat(buf, path);
+  //sprintf(buf, "%s/%s", config_root, path);
 
   // if the last character is not a slash, try the file itself
   if (path[strlen(path) - 1] != '/') {
@@ -68,7 +73,13 @@ int open_file_maybe (char *path, char *real) {
 #endif
   } else {
     for (uint8_t i = 0; search_paths[i] != NULL; i++) {
-      sprintf(buf, "%s/%s/%s", config_root, path, search_paths[i]);
+      buf[0] = '\0';
+      strcat(buf, config_root);
+      strcat(buf, "/");
+      strcat(buf, path);
+      strcat(buf, "/");
+      strcat(buf, search_paths[i]);
+      //sprintf(buf, "%s/%s/%s", config_root, path, search_paths[i]);
       char *cret = real_path(buf);
 
       if (cret != NULL &&real != NULL) {

@@ -7,10 +7,11 @@ SRCS = src/http_request.c \
 	src/mime.c \
 	src/path.c \
 	src/error_handler.c \
-	src/httpd.c
+	src/httpd.c \
+	src/deps/strmap/strmap.c
 
-CFLAGS = -Iinclude -Wall -Werror -march=native -O3 -g -fsanitize=address -fno-omit-frame-pointer
-LDFLAGS = -O3 -g -fsanitize=address
+CFLAGS = -Iinclude -Wall -march=native -O3 #-g -fsanitize=address -fno-omit-frame-pointer
+LDFLAGS = -O3 #-g -fsanitize=address
 
 OBJS=$(subst .c,.o,$(SRCS))
 

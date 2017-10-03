@@ -138,7 +138,7 @@ void socket_loop ( ) {
     current_socket = newsockfd;
 
     /* If connection is established then start communicating */
-    bzero(buffer, MAX_READ_SIZE);
+    //bzero(buffer, MAX_READ_SIZE);
     n = read(newsockfd, buffer, MAX_READ_SIZE);
 
     if (n < 0) {

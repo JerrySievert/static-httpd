@@ -10,6 +10,10 @@
 #define MAX_HEADERS 25
 #endif
 
+#ifndef MAX_HEADER_LENGTH
+#define MAX_HEADER_LENGTH 512
+#endif
+
 #define HTTP_ERROR 0
 #define HTTP_GET 1
 #define HTTP_POST 2
