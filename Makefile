@@ -10,7 +10,7 @@ SRCS = src/http_request.c \
 	src/httpd.c \
 	src/deps/strmap/strmap.c
 
-CFLAGS = -Iinclude -Wall -march=native -O3 #-g -fsanitize=address -fno-omit-frame-pointer
+CFLAGS = -Iinclude -Wall -march=native -O3 -fstrict-aliasing #-g -fsanitize=address -fno-omit-frame-pointer
 LDFLAGS = -O3 #-g -fsanitize=address
 
 OBJS=$(subst .c,.o,$(SRCS))

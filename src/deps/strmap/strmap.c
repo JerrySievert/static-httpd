@@ -6,14 +6,14 @@
  *	  Version history:
  *	  1.0.0 - initial release
  *	  2.0.0 - changed function prefix from strmap to sm to ensure
- *	      ANSI C compatibility 
- *	  2.0.1 - improved documentation 
+ *	      ANSI C compatibility
+ *	  2.0.1 - improved documentation
  *
  *    strmap.c
  *
  *    Copyright (c) 2009, 2011, 2013 Per Ola Kristensson.
  *
- *    Per Ola Kristensson <pok21@cam.ac.uk> 
+ *    Per Ola Kristensson <pok21@cam.ac.uk>
  *    Inference Group, Department of Physics
  *    University of Cambridge
  *    Cavendish Laboratory
@@ -61,7 +61,7 @@ static unsigned long hash(const char *str);
 StrMap * sm_new(unsigned int capacity)
 {
 	StrMap *map;
-	
+
 	map = malloc(sizeof(StrMap));
 	if (map == NULL) {
 		return NULL;
@@ -338,7 +338,7 @@ static unsigned long hash(const char *str)
 	unsigned long hash = 5381;
 	int c;
 
-	while (c = *str++) {
+	while ((c = *str++) != '\0') {
 		hash = ((hash << 5) + hash) + c;
 	}
 	return hash;

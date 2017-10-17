@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #ifdef __linux__
 #define __USE_XOPEN
-#define _GNU_SOURCCE
+#define _GNU_SOURCE
 #endif
 #include <time.h>
 #include <sys/time.h>
@@ -39,20 +39,72 @@ int open_file_maybe (char *path, char *real) {
   // don't want to allocate here if i can avoid it, should give some headway
   // and still allow for long paths and the filling of index.html etc
   char buf[MAX_PATH_LENGTH + MAX_ROOT_LENGTH + 32];
+  char path_copy[MAX_PATH_LENGTH];
   int ret;
+
+  strcpy(path_copy, path);
 
   buf[0] = '\0';
 
   strcat(buf, config_root);
   strcat(buf, "/");
-  strcat(buf, path);
-  //sprintf(buf, "%s/%s", config_root, path);
+  strcat(buf, path_copy);
 
   // if the last character is not a slash, try the file itself
-  if (path[strlen(path) - 1] != '/') {
+  if (path_copy[strlen(path_copy) - 1] != '/') {
+    char *cret = real_path(buf);
+    struct stat statbuf = { 0 };
+
+    // check to see if this is a directory, if it is, add a '/' and continue on
+    stat(cret, &statbuf);
+
+    // add a slash if a directory, and drop to searching paths
+    if ((statbuf.st_mode & S_IFDIR) == S_IFDIR) {
+      // check to make sure there is enough room to add a '/'
+      int len = strlen(path_copy);
+
+      // if there is not, return that we cannot open it
+      if (len >= MAX_PATH_LENGTH) {
+        return -1;
+      } else {
+        path_copy[len] = '/';
+        path_copy[len + 1] = '\0';
+      }
+    } else {
+      if (cret != NULL && real != NULL) {
+        strcpy(real, cret);
+      }
+
+      if (cret != NULL && cret[0] != '\0' && strncmp(cret, config_root, config_root_length) == 0) {
+        ret = open(cret, O_RDONLY);
+
+  #ifdef __linux__
+        free(cret);
+  #endif
+
+        return ret;
+      }
+
+  #ifdef __linux__
+      if (cret) {
+        free(cret);
+      }
+  #endif
+
+      return -1;
+    }
+  }
+
+  for (uint8_t i = 0; search_paths[i] != NULL; i++) {
+    buf[0] = '\0';
+    strcat(buf, config_root);
+    strcat(buf, "/");
+    strcat(buf, path_copy);
+    strcat(buf, "/");
+    strcat(buf, search_paths[i]);
     char *cret = real_path(buf);
 
-    if (cret != NULL && real != NULL) {
+    if (cret != NULL &&real != NULL) {
       strcpy(real, cret);
     }
 
@@ -63,7 +115,9 @@ int open_file_maybe (char *path, char *real) {
       free(cret);
 #endif
 
-      return ret;
+      if (ret != -1) {
+        return ret;
+      }
     }
 
 #ifdef __linux__
@@ -71,39 +125,6 @@ int open_file_maybe (char *path, char *real) {
       free(cret);
     }
 #endif
-  } else {
-    for (uint8_t i = 0; search_paths[i] != NULL; i++) {
-      buf[0] = '\0';
-      strcat(buf, config_root);
-      strcat(buf, "/");
-      strcat(buf, path);
-      strcat(buf, "/");
-      strcat(buf, search_paths[i]);
-      //sprintf(buf, "%s/%s/%s", config_root, path, search_paths[i]);
-      char *cret = real_path(buf);
-
-      if (cret != NULL &&real != NULL) {
-        strcpy(real, cret);
-      }
-
-      if (cret != NULL && cret[0] != '\0' && strncmp(cret, config_root, config_root_length) == 0) {
-        ret = open(cret, O_RDONLY);
-
-#ifdef __linux__
-        free(cret);
-#endif
-
-        if (ret != -1) {
-          return ret;
-        }
-      }
-
-#ifdef __linux__
-      if (cret) {
-        free(cret);
-      }
-#endif
-    }
   }
 
   return -1;
@@ -176,7 +197,6 @@ bool serve_file (Request *request, Response *response) {
 
     free(found);
   }
-
 
 #ifdef __APPLE__
   sprintf(len_hdr, "Content-Length: %lld", statbuf.st_size);

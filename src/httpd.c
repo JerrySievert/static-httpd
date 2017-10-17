@@ -15,6 +15,7 @@
 #include "http_request.h"
 #include "http_response.h"
 #include "error_handler.h"
+#include "javascript.h"
 
 #include <signal.h>
 
@@ -69,7 +70,7 @@ int main (int argc, char **argv) {
     fprintf(stderr, "ERROR: unable to resolve directory\n");
     exit(1);
   }
-
+  
   printf("webroot: %s, port: %d\n", cret, config_port);
 
   config_root_length = strlen(config_root);
